@@ -67,12 +67,17 @@ loader.load("sedan.gltf", (gltf) => {
 		if (object.isMesh) {
 			object.material = vehicleMaterials.red;
 			if (object.name.includes("Front")) {
-				frontWheels.push(object);
+				const tireSmoke = new ParticleSystem(
+					new THREE.SphereGeometry(0.15, 4, 8), new THREE.MeshToonMaterial(), 0.03, 1.25, new THREE.Vector3(0, 0, 0),
+					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, false
+				);
+				frontWheels.push({ object: object, particles: tireSmoke });
+				scene.add(tireSmoke);
 			}
 			else if (object.name.includes("Back")) {
 				const tireSmoke = new ParticleSystem(
-					new THREE.SphereGeometry(0.2, 4, 8), new THREE.MeshToonMaterial(), 0.035, 0.75, new THREE.Vector3(0, 0, 0),
-					new THREE.Vector3(0, 0.007, 0), 0.01, DeathTypes.SHRINK, false
+					new THREE.SphereGeometry(0.15, 4, 8), new THREE.MeshToonMaterial(), 0.03, 1.25, new THREE.Vector3(0, 0, 0),
+					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, false
 				);
 				backWheels.push({ object: object, particles: tireSmoke });
 				scene.add(tireSmoke);
@@ -129,12 +134,17 @@ function update() {
 
 	for (let i = 0; i < frontWheels.length; i++) {
 		const cur = frontWheels[i];
-		cur.rotation.y = lerp(cur.rotation.y, rotationMultiplier * Math.PI / 6, 0.3);
+		cur.object.rotation.y = lerp(cur.object.rotation.y, rotationMultiplier * Math.PI / 6, 0.3);
+		cur.object.getWorldPosition(cur.particles.position);
+		cur.particles.position.y = 0;
+		cur.particles.emitting = negativeWork;
+		cur.particles.update(delta);
 	}
 	for (let i = 0; i < backWheels.length; i++) {
 		const cur = backWheels[i];
 		cur.object.getWorldPosition(cur.particles.position);
 		cur.particles.position.y = 0;
+		cur.particles.emitting = negativeWork;
 		cur.particles.update(delta);
 	}
 

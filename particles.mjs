@@ -5,7 +5,8 @@ const DeathTypes = Object.freeze({
     SHRINK: 1, EXPAND: 2
 })
 
-function ParticleSystem(geometry, material, secondsPerSpawn, lifetime, initialVelocity, acceleration, radius, deathType = DeathTypes.NONE, emitting = true) {
+function ParticleSystem(geometry, material, secondsPerSpawn, lifetime, initialVelocity, acceleration, radius, deathType = DeathTypes.NONE, _emitting = true) {
+    let emitting = _emitting;
     let object = new THREE.Object3D();
     let curParticles = [];
     let timeSinceSystemSpawn = 0.0;
@@ -28,11 +29,10 @@ function ParticleSystem(geometry, material, secondsPerSpawn, lifetime, initialVe
     }
 
     function update(delta) {
-        if (!emitting) return;
 
         timeSinceSystemSpawn += delta;
 
-        if (timeSinceSystemSpawn >= secondsPerSpawn) {
+        if (timeSinceSystemSpawn >= secondsPerSpawn && emitting) {
             timeSinceSystemSpawn = 0;
             spawn();
         }
@@ -60,7 +60,11 @@ function ParticleSystem(geometry, material, secondsPerSpawn, lifetime, initialVe
 
         if (curParticles.length > 0) { // assasinate particles accordingly >:)
             let first = curParticles[0];
-            while (first.userData.onHitlist) {
+            while (curParticles.length > 0 && (!first || first.userData.onHitlist)) {
+                if (!first) {
+                    curParticles.shift();
+                    continue;
+                }
                 first.parent.remove(first);
                 curParticles.shift();
 
@@ -71,6 +75,11 @@ function ParticleSystem(geometry, material, secondsPerSpawn, lifetime, initialVe
 
     object.update = update;
     object.emit = emit;
+
+    Object.defineProperty(object, "emitting", {
+        get: () => { return emitting; },
+        set: (v) => { emitting = v; }
+    });
 
     return object;
 }
