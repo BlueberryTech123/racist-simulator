@@ -71,16 +71,24 @@ loader.load("sedan.gltf", (gltf) => {
 					new THREE.SphereGeometry(0.15, 4, 8), new THREE.MeshToonMaterial(), 0.03, 1.25, new THREE.Vector3(0, 0, 0),
 					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, false
 				);
-				frontWheels.push({ object: object, particles: tireSmoke });
+				const tireTrails = new ParticleSystem(
+					new THREE.PlaneGeometry(0.2, 0.2), new THREE.MeshToonMaterial({ color: 0x444444, transparent: true, opacity: 0.15 }), 0.025, 45, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.NONE, true, new THREE.Euler(-Math.PI / 2, 0, 0)
+				);
+				frontWheels.push({ object: object, particles: tireSmoke, trails: tireTrails });
 				scene.add(tireSmoke);
+				scene.add(tireTrails);
 			}
 			else if (object.name.includes("Back")) {
 				const tireSmoke = new ParticleSystem(
 					new THREE.SphereGeometry(0.15, 4, 8), new THREE.MeshToonMaterial(), 0.03, 1.25, new THREE.Vector3(0, 0, 0),
 					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, false
 				);
-				backWheels.push({ object: object, particles: tireSmoke });
+				const tireTrails = new ParticleSystem(
+					new THREE.PlaneGeometry(0.2, 0.2), new THREE.MeshToonMaterial({ color: 0x444444, transparent: true, opacity: 0.15 }), 0.025, 45, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.NONE, true, new THREE.Euler(-Math.PI / 2, 0, 0)
+				);
+				backWheels.push({ object: object, particles: tireSmoke, trails: tireTrails });
 				scene.add(tireSmoke);
+				scene.add(tireTrails);
 			}
 		}
 	});
@@ -89,10 +97,11 @@ loader.load("sedan.gltf", (gltf) => {
 });
 
 const clock = new THREE.Clock();
-const axesHelper = new THREE.AxesHelper( 2.5 );
-scene.add( axesHelper );
+// const axesHelper = new THREE.AxesHelper( 2.5 );
+// scene.add( axesHelper );
 
 const track = new THREE.Mesh(new THREE.PlaneGeometry(128, 128), new THREE.MeshToonMaterial({ color: 0xa5b85e }));
+// const track = new THREE.Mesh(new THREE.PlaneGeometry(128, 128), new THREE.MeshToonMaterial({ map: loadTexture("testtrack.jpg") }));
 track.rotation.x = -Math.PI / 2;
 scene.add(track);
 
@@ -139,6 +148,11 @@ function update() {
 		cur.particles.position.y = 0;
 		cur.particles.emitting = negativeWork;
 		cur.particles.update(delta);
+
+		cur.object.getWorldPosition(cur.trails.position);
+		cur.trails.position.y = 0.001;
+		cur.trails.emitting = negativeWork;
+		cur.trails.update(delta);
 	}
 	for (let i = 0; i < backWheels.length; i++) {
 		const cur = backWheels[i];
@@ -146,6 +160,11 @@ function update() {
 		cur.particles.position.y = 0;
 		cur.particles.emitting = negativeWork;
 		cur.particles.update(delta);
+
+		cur.object.getWorldPosition(cur.trails.position);
+		cur.trails.position.y = 0.001;
+		cur.trails.emitting = negativeWork;
+		cur.trails.update(delta);
 	}
 
 	// update camera

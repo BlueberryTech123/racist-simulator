@@ -5,16 +5,21 @@ const DeathTypes = Object.freeze({
     SHRINK: 1, EXPAND: 2
 })
 
-function ParticleSystem(geometry, material, secondsPerSpawn, lifetime, initialVelocity, acceleration, radius, deathType = DeathTypes.NONE, _emitting = true) {
+function ParticleSystem(geometry, material, secondsPerSpawn, lifetime, initialVelocity, acceleration, radius, deathType = DeathTypes.NONE, _emitting = true, _rotation = null) {
     let emitting = _emitting;
     let object = new THREE.Object3D();
     let curParticles = [];
     let timeSinceSystemSpawn = 0.0;
 
+    let rotation = _rotation;
+    if (!_rotation) {
+        rotation = new THREE.Euler(0, 0, 0);
+    }
+
     function spawn() {
-        console.log("doing")
         const particle = new THREE.Mesh(geometry, material);
         particle.position.copy(object.position);
+        particle.rotation.copy(rotation);
         particle.position.add(
             new THREE.Vector3((Math.random() * 2 - 1) * radius, (Math.random() * 2 - 1) * radius, (Math.random() * 2 - 1) * radius));
         particle.userData = {
