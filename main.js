@@ -60,6 +60,10 @@ scene.add(player);
 const vehicleMaterials = {
 	red: new THREE.MeshToonMaterial({ map: loadTexture("textures/vehicles/blue.png", true) })
 }
+const materials = {
+	tireSmoke: new THREE.MeshToonMaterial(),
+	tireTrails: new THREE.MeshToonMaterial({ color: 0x333333 })
+}
 
 // load vehicle
 loader.load("sedan.gltf", (gltf) => {
@@ -68,11 +72,11 @@ loader.load("sedan.gltf", (gltf) => {
 			object.material = vehicleMaterials.red;
 			if (object.name.includes("Front")) {
 				const tireSmoke = new ParticleSystem(
-					new THREE.SphereGeometry(0.15, 4, 8), new THREE.MeshToonMaterial(), 0.03, 1.25, new THREE.Vector3(0, 0, 0),
+					new THREE.SphereGeometry(0.25, 8, 4), materials.tireSmoke, 0.03, 1.25, new THREE.Vector3(0, 0, 0),
 					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, false
 				);
 				const tireTrails = new ParticleSystem(
-					new THREE.PlaneGeometry(0.2, 0.2), new THREE.MeshToonMaterial({ color: 0x444444, transparent: true, opacity: 0.15 }), 0.025, 45, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.NONE, true, new THREE.Euler(-Math.PI / 2, 0, 0)
+					new THREE.PlaneGeometry(0.12, 0.12), materials.tireTrails, 0.025, 7.5, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.SHRINK, true, new THREE.Euler(-Math.PI / 2, 0, 0)
 				);
 				frontWheels.push({ object: object, particles: tireSmoke, trails: tireTrails });
 				scene.add(tireSmoke);
@@ -80,11 +84,11 @@ loader.load("sedan.gltf", (gltf) => {
 			}
 			else if (object.name.includes("Back")) {
 				const tireSmoke = new ParticleSystem(
-					new THREE.SphereGeometry(0.15, 4, 8), new THREE.MeshToonMaterial(), 0.03, 1.25, new THREE.Vector3(0, 0, 0),
+					new THREE.SphereGeometry(0.25, 8, 4), materials.tireSmoke, 0.03, 1.25, new THREE.Vector3(0, 0, 0),
 					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, false
 				);
 				const tireTrails = new ParticleSystem(
-					new THREE.PlaneGeometry(0.2, 0.2), new THREE.MeshToonMaterial({ color: 0x444444, transparent: true, opacity: 0.15 }), 0.025, 45, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.NONE, true, new THREE.Euler(-Math.PI / 2, 0, 0)
+					new THREE.PlaneGeometry(0.12, 0.12), materials.tireTrails, 0.025, 7.5, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.SHRINK, true, new THREE.Euler(-Math.PI / 2, 0, 0)
 				);
 				backWheels.push({ object: object, particles: tireSmoke, trails: tireTrails });
 				scene.add(tireSmoke);
