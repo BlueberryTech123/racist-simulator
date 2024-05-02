@@ -57,7 +57,7 @@ let activeProjectiles = [];
 let timeLeft = 0;
 let speed = 0;
 let acceleration = 5;
-let maxSpeed = 17.5;
+let maxSpeed = 10;
 const turnSpeed = 2 * Math.PI / 3
 scene.add(player);
 
@@ -74,7 +74,6 @@ const materials = {
 	tireTrails: new THREE.MeshToonMaterial({ color: 0x333333, transparent: true, opacity: 0.1 }),
 	cargoStrap: new THREE.MeshToonMaterial({ color: 0x545454 }),
 	projectile: new THREE.MeshBasicMaterial({ color: 0xffffcc }),
-	projectile2: new THREE.MeshBasicMaterial({ color: 0xffb938 }),
 	projectileSmoke: new THREE.MeshBasicMaterial({ color: 0x333333 })
 }
 
@@ -106,7 +105,7 @@ loader.load("sedan.gltf", (gltf) => {
 			object.material = vehicleMaterials.red;
 			if (object.name.includes("Front")) {
 				const tireSmoke = new ParticleSystem(
-					new THREE.SphereGeometry(0.25, 8, 4), materials.tireSmoke, 0.03, 1.25, new THREE.Vector3(0, 0, 0),
+					new THREE.SphereGeometry(0.25, 8, 4), materials.tireSmoke, 0.05, 1.25, new THREE.Vector3(0, 0, 0),
 					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, true
 				);
 				const tireTrails = new ParticleSystem(
@@ -118,7 +117,7 @@ loader.load("sedan.gltf", (gltf) => {
 			}
 			else if (object.name.includes("Back")) {
 				const tireSmoke = new ParticleSystem(
-					new THREE.SphereGeometry(0.25, 8, 4), materials.tireSmoke, 0.03, 1.25, new THREE.Vector3(0, 0, 0),
+					new THREE.SphereGeometry(0.25, 8, 4), materials.tireSmoke, 0.05, 1.25, new THREE.Vector3(0, 0, 0),
 					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, true
 				);
 				const tireTrails = new ParticleSystem(
