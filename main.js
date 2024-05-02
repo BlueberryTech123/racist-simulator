@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ParticleSystem, DeathTypes } from './particles.mjs';
+import { Zombie } from './enemies.mjs';
 
 const loader = new GLTFLoader();
 const scene = new THREE.Scene();
@@ -143,6 +144,11 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(128, 128), new THREE.MeshT
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
+const balls = Zombie();
+balls.position.set(0, 0, 5);
+
+scene.add(balls);
+
 
 // update() runs every frame
 function update() {
@@ -152,7 +158,7 @@ function update() {
 
 	// update projectile timer
 	timeLeft = clamp(timeLeft - delta, 0, 1000);
-	if ((pressedKeys.e || pressedKeys.E) && timeLeft == 0) {
+	if (pressedKeys[" "] && timeLeft == 0) {
 		const projectile = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 4), materials.projectile);
 		scene.add(projectile);
 		timeLeft += 0.15;
