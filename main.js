@@ -73,7 +73,9 @@ const materials = {
 	tireSmoke: new THREE.MeshToonMaterial({ color: 0xebd893 }),
 	tireTrails: new THREE.MeshToonMaterial({ color: 0x333333, transparent: true, opacity: 0.1 }),
 	cargoStrap: new THREE.MeshToonMaterial({ color: 0x545454 }),
-	projectile: new THREE.MeshBasicMaterial({ color: 0xffffcc })
+	projectile: new THREE.MeshBasicMaterial({ color: 0xffffcc }),
+	projectile2: new THREE.MeshBasicMaterial({ color: 0xffb938 }),
+	projectileSmoke: new THREE.MeshBasicMaterial({ color: 0x333333 })
 }
 
 function loadCargo(amount) {
@@ -159,15 +161,29 @@ function update() {
 		projectile.position.copy(player.position);
 		projectile.position.y = 0.1;
 		projectile.rotation.copy(player.rotation);
+
+		projectile.userData.timeLeft = 10;
+		projectile.userData.initialVelocity = speed;
+
 		activeProjectiles.push(projectile);
 	}
 	for (let i = 0; i < activeProjectiles.length; i++) {
 		const cur = activeProjectiles[i];
 		const vector = new THREE.Vector3(0, 0, 0);
 		cur.getWorldDirection(vector);
-		vector.multiplyScalar(delta * 25);
+		vector.multiplyScalar(delta * (22.5 + cur.userData.initialVelocity));
 		cur.position.add(vector);
+		cur.userData.timeLeft -= delta;
 		// alert(JSON.stringify(cur.position));
+	}
+	if (activeProjectiles.length > 0) {
+		let firstProjectile = activeProjectiles[0];
+		while (firstProjectile.userData.timeLeft == 0) {
+			activeProjectiles.shift();
+			if (activeProjectiles.length > 0) {
+				firstProjectile = activeProjectiles[0];
+			} else break;
+		}
 	}
 
 	// update player
@@ -201,7 +217,7 @@ function update() {
 	player.position.add(playerForward);
 	player.rotation.z = lerp(player.rotation.z, -rotationMultiplier * 0.08, 0.2);
 
-    const emitDust = Math.abs(speed) >= 2.5;
+    const emitDust = Math.abs(speed) >= 1;
 
 	for (let i = 0; i < frontWheels.length; i++) {
 		const cur = frontWheels[i];
