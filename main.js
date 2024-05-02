@@ -53,6 +53,8 @@ const cameraDistance = 15;
 const player = new THREE.Object3D();
 const frontWheels = [];
 const backWheels = [];
+let activeProjectiles = [];
+let timeLeft = 0;
 let speed = 0;
 let acceleration = 5;
 let maxSpeed = 17.5;
@@ -70,7 +72,8 @@ const cargoMaterials = [
 const materials = {
 	tireSmoke: new THREE.MeshToonMaterial({ color: 0xebd893 }),
 	tireTrails: new THREE.MeshToonMaterial({ color: 0x333333, transparent: true, opacity: 0.1 }),
-	cargoStrap: new THREE.MeshToonMaterial({ color: 0x545454 })
+	cargoStrap: new THREE.MeshToonMaterial({ color: 0x545454 }),
+	projectile: new THREE.MeshBasicMaterial({ color: 0xffffcc })
 }
 
 function loadCargo(amount) {
@@ -145,6 +148,27 @@ function update() {
 	requestAnimationFrame(update);
 	const delta = clock.getDelta();
 	renderer.setSize(window.innerWidth - padding * 2, window.innerHeight - padding * 2);
+
+	// update projectile timer
+	timeLeft = clamp(timeLeft - delta, 0, 1000);
+	if ((pressedKeys.e || pressedKeys.E) && timeLeft == 0) {
+		const projectile = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 4), materials.projectile);
+		scene.add(projectile);
+		timeLeft += 0.15;
+		projectile.scale.set(0.3, 0.3, 1);
+		projectile.position.copy(player.position);
+		projectile.position.y = 0.1;
+		projectile.rotation.copy(player.rotation);
+		activeProjectiles.push(projectile);
+	}
+	for (let i = 0; i < activeProjectiles.length; i++) {
+		const cur = activeProjectiles[i];
+		const vector = new THREE.Vector3(0, 0, 0);
+		cur.getWorldDirection(vector);
+		vector.multiplyScalar(delta * 25);
+		cur.position.add(vector);
+		// alert(JSON.stringify(cur.position));
+	}
 
 	// update player
 	let rotationMultiplier = 0;
