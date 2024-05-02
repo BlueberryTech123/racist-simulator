@@ -6,8 +6,10 @@ const loader = new GLTFLoader();
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 
+const padding = 30;
+
 const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(window.innerWidth - padding * 2, window.innerHeight - padding * 2);
 renderer.setPixelRatio(1.5);
 document.body.appendChild(renderer.domElement);
 
@@ -45,7 +47,7 @@ window.onkeydown = function(event) { pressedKeys[event.key] = true; }
 
 // ==============================================================
 
-const cameraVector = new THREE.Vector3(1, -1.25, 1).normalize();
+const cameraVector = new THREE.Vector3(1, -1, 1).normalize();
 camera.lookAt(cameraVector);
 const cameraDistance = 15;
 const player = new THREE.Object3D();
@@ -53,16 +55,43 @@ const frontWheels = [];
 const backWheels = [];
 let speed = 0;
 let acceleration = 5;
-let maxSpeed = 14;
+let maxSpeed = 17.5;
 const turnSpeed = 2 * Math.PI / 3
 scene.add(player);
 
 const vehicleMaterials = {
 	red: new THREE.MeshToonMaterial({ map: loadTexture("textures/vehicles/blue.png", true) })
 }
+const cargoMaterials = [
+	new THREE.MeshToonMaterial({ color: 0x997272 }),
+	new THREE.MeshToonMaterial({ color: 0x666699 }),
+	new THREE.MeshToonMaterial({ color: 0x999966 })
+]
 const materials = {
-	tireSmoke: new THREE.MeshToonMaterial(),
-	tireTrails: new THREE.MeshToonMaterial({ color: 0x333333 })
+	tireSmoke: new THREE.MeshToonMaterial({ color: 0xebd893 }),
+	tireTrails: new THREE.MeshToonMaterial({ color: 0x333333, transparent: true, opacity: 0.1 }),
+	cargoStrap: new THREE.MeshToonMaterial({ color: 0x545454 })
+}
+
+function loadCargo(amount) {
+	const init = 0.55;
+	const boxHeight = 0.15;
+	for (let i = 0; i < amount; i++) {
+		const width = 0.3 + Math.random() * 0.6 / (i + 1);
+		const length = 0.3 + Math.random() * 0.6 / (i + 1);
+		const crateGeometry = new THREE.BoxGeometry(
+			width, boxHeight, length);
+		const crate = new THREE.Mesh(crateGeometry, cargoMaterials[i % cargoMaterials.length]);
+		player.add(crate);
+		crate.position.set(0, init + (i + 1) * boxHeight, -0.1);
+		crate.rotation.y = Math.random() * 2 * Math.PI;
+
+		const strap1 = new THREE.Mesh(new THREE.BoxGeometry(width + 0.02, boxHeight + 0.02, 0.04), materials.cargoStrap);
+		const strap2 = new THREE.Mesh(new THREE.BoxGeometry(0.04, boxHeight + 0.02, length + 0.02), materials.cargoStrap);
+
+		crate.add(strap1); strap1.position.set(0, 0, 0);
+		crate.add(strap2); strap2.position.set(0, 0, 0);
+	}
 }
 
 // load vehicle
@@ -73,10 +102,10 @@ loader.load("sedan.gltf", (gltf) => {
 			if (object.name.includes("Front")) {
 				const tireSmoke = new ParticleSystem(
 					new THREE.SphereGeometry(0.25, 8, 4), materials.tireSmoke, 0.03, 1.25, new THREE.Vector3(0, 0, 0),
-					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, false
+					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, true
 				);
 				const tireTrails = new ParticleSystem(
-					new THREE.PlaneGeometry(0.12, 0.12), materials.tireTrails, 0.025, 7.5, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.SHRINK, true, new THREE.Euler(-Math.PI / 2, 0, 0)
+					new THREE.PlaneGeometry(0.25, 0.25), materials.tireTrails, 0.025, 7.5, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.SHRINK, true, new THREE.Euler(-Math.PI / 2, 0, 0)
 				);
 				frontWheels.push({ object: object, particles: tireSmoke, trails: tireTrails });
 				scene.add(tireSmoke);
@@ -85,10 +114,10 @@ loader.load("sedan.gltf", (gltf) => {
 			else if (object.name.includes("Back")) {
 				const tireSmoke = new ParticleSystem(
 					new THREE.SphereGeometry(0.25, 8, 4), materials.tireSmoke, 0.03, 1.25, new THREE.Vector3(0, 0, 0),
-					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, false
+					new THREE.Vector3(0, 0, 0), 0.05, DeathTypes.SHRINK, true
 				);
 				const tireTrails = new ParticleSystem(
-					new THREE.PlaneGeometry(0.12, 0.12), materials.tireTrails, 0.025, 7.5, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.SHRINK, true, new THREE.Euler(-Math.PI / 2, 0, 0)
+					new THREE.PlaneGeometry(0.25, 0.25), materials.tireTrails, 0.025, 7.5, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 0, DeathTypes.SHRINK, true, new THREE.Euler(-Math.PI / 2, 0, 0)
 				);
 				backWheels.push({ object: object, particles: tireSmoke, trails: tireTrails });
 				scene.add(tireSmoke);
@@ -96,6 +125,7 @@ loader.load("sedan.gltf", (gltf) => {
 			}
 		}
 	});
+	loadCargo(5);
 	gltf.scene.scale.set(2, 2, 2);
 	player.add(gltf.scene);
 });
@@ -104,16 +134,17 @@ const clock = new THREE.Clock();
 // const axesHelper = new THREE.AxesHelper( 2.5 );
 // scene.add( axesHelper );
 
-const track = new THREE.Mesh(new THREE.PlaneGeometry(128, 128), new THREE.MeshToonMaterial({ color: 0xa5b85e }));
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(128, 128), new THREE.MeshToonMaterial({ color: 0xdcc984 }));
 // const track = new THREE.Mesh(new THREE.PlaneGeometry(128, 128), new THREE.MeshToonMaterial({ map: loadTexture("testtrack.jpg") }));
-track.rotation.x = -Math.PI / 2;
-scene.add(track);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
 
 
 // update() runs every frame
 function update() {
 	requestAnimationFrame(update);
 	const delta = clock.getDelta();
+	renderer.setSize(window.innerWidth - padding * 2, window.innerHeight - padding * 2);
 
 	// update player
 	let rotationMultiplier = 0;
@@ -144,13 +175,16 @@ function update() {
 	player.getWorldDirection(playerForward);
 	playerForward.multiplyScalar(speed * delta);
 	player.position.add(playerForward);
+	player.rotation.z = lerp(player.rotation.z, -rotationMultiplier * 0.08, 0.2);
+
+    const emitDust = Math.abs(speed) >= 2.5;
 
 	for (let i = 0; i < frontWheels.length; i++) {
 		const cur = frontWheels[i];
 		cur.object.rotation.y = lerp(cur.object.rotation.y, rotationMultiplier * Math.PI / 6, 0.3);
 		cur.object.getWorldPosition(cur.particles.position);
 		cur.particles.position.y = 0;
-		cur.particles.emitting = negativeWork;
+		cur.particles.emitting = emitDust;
 		cur.particles.update(delta);
 
 		cur.object.getWorldPosition(cur.trails.position);
@@ -162,7 +196,7 @@ function update() {
 		const cur = backWheels[i];
 		cur.object.getWorldPosition(cur.particles.position);
 		cur.particles.position.y = 0;
-		cur.particles.emitting = negativeWork;
+		cur.particles.emitting = emitDust;
 		cur.particles.update(delta);
 
 		cur.object.getWorldPosition(cur.trails.position);
@@ -178,6 +212,10 @@ function update() {
 
 	camera.position.copy(player.position);
 	camera.position.add(vector);
+
+	// update ground
+	ground.position.x = player.position.x;
+	ground.position.z = player.position.z;
 
 	renderer.render(scene, camera);
 }
