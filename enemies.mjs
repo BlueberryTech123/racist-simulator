@@ -5,6 +5,8 @@ const materials = {
     zombieHead: new THREE.MeshToonMaterial({ color: 0x999966 })
 }
 
+const enemyRadius = 0.2;
+
 function Zombie(target, enemies, speed = 2.75) {
     let object = new THREE.Object3D();
     const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.2, 8), materials.zombieBody);
@@ -17,10 +19,13 @@ function Zombie(target, enemies, speed = 2.75) {
     let timeElapsed = Math.random() * 5;
     
     function collision() {
-        for (let i = 0; i < enemies.length; i++) {
-            const cur = enemies[i];
+        if (object.position.distanceTo(target.position) <= enemyRadius + 0.75) {
+            return true;
+        }
+
+        for (const cur of enemies.keys()) {
             if (cur == object) continue;
-            if (object.position.distanceTo(cur.position) <= 0.4) {
+            if (object.position.distanceTo(cur.position) <= enemyRadius * 2) {
                 return true;
             }
         }
@@ -30,19 +35,22 @@ function Zombie(target, enemies, speed = 2.75) {
     function update(delta) {
         timeElapsed += delta;
 
-        object.position.y = Math.abs(Math.sin(timeElapsed * 10)) * 0.1;    
         const movementVector = target.position.clone().sub(object.position);
         movementVector.y = 0;
         movementVector.normalize().multiplyScalar(delta * speed);
 
+        let collisions = 0;
         object.position.x += movementVector.x;
         if (collision()) {
+            collisions++;
             object.position.x -= movementVector.x;
         }
         object.position.z += movementVector.z;
         if (collision()) {
+            collisions++;
             object.position.z -= movementVector.z;
         }
+        object.position.y = Math.abs(Math.sin(timeElapsed * 10)) * 0.1;
     }
 
     object.update = update;
@@ -50,4 +58,4 @@ function Zombie(target, enemies, speed = 2.75) {
     return object;
 }
 
-export { Zombie };
+export { enemyRadius, Zombie };

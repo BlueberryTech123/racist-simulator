@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ParticleSystem, DeathTypes } from './particles.mjs';
 import { Zombie } from './enemies.mjs';
+import { lerp, clamp, loadTexture } from './util.mjs';
 
 const loader = new GLTFLoader();
 const scene = new THREE.Scene();
@@ -25,23 +26,6 @@ scene.add(camera);
 
 // ==============================================================
 
-function lerp(a, b, i) {
-	return a + i * (b - a);
-}
-function clamp(v, a, b) {
-	return Math.max(a, Math.min(v, b));
-}
-function loadTexture(path, flipped = false) {
-    let texture = new THREE.TextureLoader().load(path);
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.minFilter = texture.magFilter = THREE.NearestFilter;
-    texture.colorSpace = THREE.SRGBColorSpace;
-	if (flipped) {
-		texture.flipY = true;
-	}
-	texture.needsUpdate = true;
-    return texture;
-}
 var pressedKeys = {};
 window.onkeyup = function(event) { pressedKeys[event.key] = false; }
 window.onkeydown = function(event) { pressedKeys[event.key] = true; }
@@ -77,15 +61,18 @@ const materials = {
 	projectile: new THREE.MeshBasicMaterial({ color: 0xffffcc }),
 	projectileSmoke: new THREE.MeshBasicMaterial({ color: 0x333333 })
 }
-let enemies = [];
+let enemies = new Set([]);
+const spawnTick = 0.7;
+let spawnTimer = 0;
 
 function spawnEnemy() {
 	const newEnemy = new Zombie(player, enemies);
-	newEnemy.position.set((Math.random() * 10 - 5) + player.position.x, 0, (Math.random() * 10 - 5) + player.position.z);
+	const theta = Math.random(2 * Math.PI)
+	newEnemy.position.set(player.position.x + Math.sin(theta) * 30, 0, player.position.z + Math.cos(theta) * 30);
 	scene.add(newEnemy);
-	enemies.push(newEnemy);
+	enemies.add(newEnemy);
 }
-for (let i = 0; i < 25; i++) spawnEnemy();
+// for (let i = 0; i < 25; i++) spawnEnemy();
 
 function loadCargo(amount) {
 	const init = 0.55;
@@ -153,11 +140,34 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(128, 128), new THREE.MeshT
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
+const enemiesCount = document.querySelector("#enemies");
+const projectilesCount = document.querySelector("#projectiles");
+
 // update() runs every frame
 function update() {
 	requestAnimationFrame(update);
 	const delta = clock.getDelta();
 	renderer.setSize(window.innerWidth - padding * 2, window.innerHeight - padding * 2);
+
+	// update enemies
+	spawnTimer -= delta;
+	spawnTimer = Math.max(0, spawnTimer);
+	if (spawnTimer == 0) {
+		spawnTimer = spawnTick;
+		if (enemies.size < 45) {
+			spawnEnemy();
+			console.log(enemies);
+		}
+	}
+	let hitlist = [];
+	for (const cur of enemies.keys()) {
+		if (cur.position.distanceTo(player.position) >= 80) {
+			hitlist.push(cur);
+		}
+	}
+	for (const cur of hitlist) {
+		enemies.delete(cur);
+	}
 
 	// update projectile timer
 	timeLeft = clamp(timeLeft - delta, 0, 1000);
@@ -186,7 +196,7 @@ function update() {
 	}
 	if (activeProjectiles.length > 0) {
 		let firstProjectile = activeProjectiles[0];
-		while (firstProjectile.userData.timeLeft == 0) {
+		while (firstProjectile.userData.timeLeft <= 0) {
 			activeProjectiles.shift();
 			if (activeProjectiles.length > 0) {
 				firstProjectile = activeProjectiles[0];
@@ -265,10 +275,12 @@ function update() {
 	ground.position.x = player.position.x;
 	ground.position.z = player.position.z;
 
-	for (let i = 0; i < enemies.length; i++) {
-		const cur = enemies[i];
+	for (const cur of enemies.keys()) {
 		cur.update(delta);
 	}
+
+	enemiesCount.innerText = enemies.size;
+	projectilesCount.innerText = activeProjectiles.length;
 
 	renderer.render(scene, camera);
 }
