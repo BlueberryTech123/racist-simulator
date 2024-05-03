@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 const materials = {
-    zombieBody: new THREE.MeshToonMaterial({ color: 0x666699 }),
+    zombieBody: new THREE.MeshToonMaterial({ color: 0x6b6256 }),
     zombieHead: new THREE.MeshToonMaterial({ color: 0x999966 })
 }
 
@@ -9,10 +9,10 @@ const enemyRadius = 0.2;
 
 function Zombie(target, enemies, speed = 2.75) {
     let object = new THREE.Object3D();
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.2, 8), materials.zombieBody);
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.2, 8), materials.zombieBody);
     body.position.set(0, 0.1 + 0.3 / 2, 0);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.125, 8, 4), materials.zombieHead);
-    head.position.set(0, 0.1 + 0.3 + 0.15, 0);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 4), materials.zombieHead);
+    head.position.set(0, 0.1 + 0.3 + 0.125, 0);
     object.add(body);
     object.add(head);
 

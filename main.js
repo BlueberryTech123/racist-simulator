@@ -59,6 +59,7 @@ const materials = {
 	tireTrails: new THREE.MeshToonMaterial({ color: 0x333333, transparent: true, opacity: 0.1 }),
 	cargoStrap: new THREE.MeshToonMaterial({ color: 0x545454 }),
 	projectile: new THREE.MeshBasicMaterial({ color: 0xffffcc }),
+	projectileOutline: new THREE.MeshBasicMaterial({ color: 0xff9900, side: THREE.BackSide }),
 	projectileSmoke: new THREE.MeshBasicMaterial({ color: 0x333333 })
 }
 let enemies = new Set([]);
@@ -175,10 +176,14 @@ function update() {
 		const projectile = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 4), materials.projectile);
 		scene.add(projectile);
 		timeLeft += 0.15;
-		projectile.scale.set(0.3, 0.3, 1);
+		projectile.scale.set(0.25, 0.25, 1);
 		projectile.position.copy(player.position);
-		projectile.position.y = 0.1;
+		projectile.position.y = 0.15;
 		projectile.rotation.copy(player.rotation);
+		// const projectileOutline = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 4), materials.projectileOutline);
+		// projectile.add(projectileOutline);
+		// projectileOutline.position.set(0, 0, 0);
+		// projectileOutline.scale.set(1.5, 1.5, 1.5);
 
 		projectile.userData.timeLeft = 10;
 		projectile.userData.initialVelocity = speed;
