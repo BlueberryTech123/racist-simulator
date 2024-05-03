@@ -77,6 +77,15 @@ const materials = {
 	projectile: new THREE.MeshBasicMaterial({ color: 0xffffcc }),
 	projectileSmoke: new THREE.MeshBasicMaterial({ color: 0x333333 })
 }
+let enemies = [];
+
+function spawnEnemy() {
+	const newEnemy = new Zombie(player, enemies);
+	newEnemy.position.set((Math.random() * 10 - 5) + player.position.x, 0, (Math.random() * 10 - 5) + player.position.z);
+	scene.add(newEnemy);
+	enemies.push(newEnemy);
+}
+for (let i = 0; i < 25; i++) spawnEnemy();
 
 function loadCargo(amount) {
 	const init = 0.55;
@@ -143,12 +152,6 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(128, 128), new THREE.MeshT
 // const track = new THREE.Mesh(new THREE.PlaneGeometry(128, 128), new THREE.MeshToonMaterial({ map: loadTexture("testtrack.jpg") }));
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
-
-const balls = Zombie();
-balls.position.set(0, 0, 5);
-
-scene.add(balls);
-
 
 // update() runs every frame
 function update() {
@@ -261,6 +264,11 @@ function update() {
 	// update ground
 	ground.position.x = player.position.x;
 	ground.position.z = player.position.z;
+
+	for (let i = 0; i < enemies.length; i++) {
+		const cur = enemies[i];
+		cur.update(delta);
+	}
 
 	renderer.render(scene, camera);
 }
